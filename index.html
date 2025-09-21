@@ -418,9 +418,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化变量
-            let users = JSON.parse(localStorage.getItem('mediaLibraryUsers')) || {};
-            let currentUser = null;
-            let libraries = JSON.parse(localStorage.getItem('mediaLibraries')) || {};
+            let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
             let currentLibrary = null;
             
             // DOM元素
@@ -472,24 +470,39 @@
             });
             
             // 登录表单提交
-            loginForm.addEventListener('submit', function(e) {
+            loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const username = document.getElementById('loginUsername').value;
                 const password = document.getElementById('loginPassword').value;
                 
-                if (users[username] && users[username].password === password) {
-                    currentUser = username;
-                    localStorage.setItem('currentUser', username);
-                    updateUI();
-                    toggleAuthModal(false);
-                    loginForm.reset();
-                } else {
-                    alert('用户名或密码错误');
+                try {
+                    const response = await fetch('http://localhost:5000/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        currentUser = data.user;
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        updateUI();
+                        toggleAuthModal(false);
+                        loginForm.reset();
+                    } else {
+                        alert(data.error || '登录失败');
+                    }
+                } catch (error) {
+                    console.error('登录错误:', error);
+                    alert('登录过程中发生错误');
                 }
             });
             
             // 注册表单提交
-            registerForm.addEventListener('submit', function(e) {
+            registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const username = document.getElementById('registerUsername').value;
                 const email = document.getElementById('registerEmail').value;
@@ -501,24 +514,28 @@
                     return;
                 }
                 
-                if (users[username]) {
-                    alert('用户名已存在');
-                    return;
+                try {
+                    const response = await fetch('http://localhost:5000/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, email, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        alert('注册成功，请登录');
+                        authTabs[0].click();
+                        registerForm.reset();
+                    } else {
+                        alert(data.error || '注册失败');
+                    }
+                } catch (error) {
+                    console.error('注册错误:', error);
+                    alert('注册过程中发生错误');
                 }
-                
-                // 创建新用户
-                users[username] = {
-                    email: email,
-                    password: password,
-                    createdAt: new Date().toISOString()
-                };
-                
-                // 保存用户数据
-                localStorage.setItem('mediaLibraryUsers', JSON.stringify(users));
-                
-                alert('注册成功，请登录');
-                authTabs[0].click(); // 切换到登录选项卡
-                registerForm.reset();
             });
             
             // 关闭模态框
@@ -557,8 +574,8 @@
                 if (currentUser) {
                     authButtons.style.display = 'none';
                     userInfo.style.display = 'flex';
-                    usernameSpan.textContent = currentUser;
-                    userAvatar.textContent = currentUser.charAt(0).toUpperCase();
+                    usernameSpan.textContent = currentUser.username;
+                    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
                     
                     // 显示用户的库
                     renderLibraries();
@@ -577,42 +594,63 @@
             }
             
             // 显示库列表
-            function renderLibraries() {
+            async function renderLibraries() {
                 libraryList.innerHTML = '';
                 
-                const userLibraries = Object.keys(libraries).filter(id => libraries[id].owner === currentUser);
+                if (!currentUser) return;
                 
-                if (userLibraries.length === 0) {
-                    libraryList.innerHTML = '<p class="empty-state">暂无库，请创建一个</p>';
-                    return;
+                try {
+                    const response = await fetch(`http://localhost:5000/api/libraries?user_id=${currentUser.id}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        if (data.libraries.length === 0) {
+                            libraryList.innerHTML = '<p class="empty-state">暂无库，请创建一个</p>';
+                            return;
+                        }
+                        
+                        data.libraries.forEach(library => {
+                            const li = document.createElement('li');
+                            li.className = `library-item ${currentLibrary === library.id ? 'active' : ''}`;
+                            li.innerHTML = `
+                                <span>${library.name}</span>
+                                <span>${library.media_count}个项目</span>
+                            `;
+                            li.addEventListener('click', () => selectLibrary(library.id));
+                            libraryList.appendChild(li);
+                        });
+                    } else {
+                        console.error('获取媒体库失败:', data.error);
+                    }
+                } catch (error) {
+                    console.error('获取媒体库错误:', error);
                 }
-                
-                userLibraries.forEach(libraryId => {
-                    const library = libraries[libraryId];
-                    const li = document.createElement('li');
-                    li.className = `library-item ${currentLibrary === libraryId ? 'active' : ''}`;
-                    li.innerHTML = `
-                        <span>${library.name}</span>
-                        <span>${library.media ? library.media.length : 0}个项目</span>
-                    `;
-                    li.addEventListener('click', () => selectLibrary(libraryId));
-                    libraryList.appendChild(li);
-                });
             }
             
             // 选择库
-            function selectLibrary(libraryId) {
-                currentLibrary = libraryId;
-                currentLibraryName.textContent = libraries[libraryId].name;
-                renderMedia();
-                renderLibraries();
+            async function selectLibrary(libraryId) {
+                try {
+                    const response = await fetch(`http://localhost:5000/api/libraries/${libraryId}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        currentLibrary = libraryId;
+                        currentLibraryName.textContent = data.library.name;
+                        renderMedia(data.media_items);
+                        renderLibraries();
+                    } else {
+                        console.error('获取库详情失败:', data.error);
+                    }
+                } catch (error) {
+                    console.error('获取库详情错误:', error);
+                }
             }
             
             // 显示媒体内容
-            function renderMedia() {
+            function renderMedia(mediaItems) {
                 mediaGrid.innerHTML = '';
                 
-                if (!currentLibrary || !libraries[currentLibrary].media || libraries[currentLibrary].media.length === 0) {
+                if (!mediaItems || mediaItems.length === 0) {
                     mediaGrid.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-folder-open"></i>
@@ -622,36 +660,36 @@
                     return;
                 }
                 
-                libraries[currentLibrary].media.forEach((media, index) => {
+                mediaItems.forEach((media, index) => {
                     const mediaItem = document.createElement('div');
                     mediaItem.className = 'media-item';
                     
                     if (media.type.startsWith('image')) {
                         mediaItem.innerHTML = `
-                            <img src="${media.url}" alt="${media.name}">
+                            <img src="http://localhost:5000${media.url}" alt="${media.name}">
                             <div class="media-info">
                                 <p>${media.name}</p>
                                 <span class="media-owner">由 ${media.owner} 上传</span>
                             </div>
-                            ${media.owner === currentUser ? `
+                            ${media.owner === currentUser.username ? `
                                 <div class="media-actions">
-                                    <button class="btn btn-danger delete-btn" data-index="${index}">删除</button>
+                                    <button class="btn btn-danger delete-btn" data-id="${media.id}">删除</button>
                                 </div>
                             ` : ''}
                         `;
                     } else if (media.type.startsWith('video')) {
                         mediaItem.innerHTML = `
                             <video controls>
-                                <source src="${media.url}" type="${media.type}">
+                                <source src="http://localhost:5000${media.url}" type="${media.type}">
                                 您的浏览器不支持视频标签
                             </video>
                             <div class="media-info">
                                 <p>${media.name}</p>
                                 <span class="media-owner">由 ${media.owner} 上传</span>
                             </div>
-                            ${media.owner === currentUser ? `
+                            ${media.owner === currentUser.username ? `
                                 <div class="media-actions">
-                                    <button class="btn btn-danger delete-btn" data-index="${index}">删除</button>
+                                    <button class="btn btn-danger delete-btn" data-id="${media.id}">删除</button>
                                 </div>
                             ` : ''}
                         `;
@@ -664,19 +702,36 @@
                 document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        const index = parseInt(this.getAttribute('data-index'));
-                        deleteMedia(index);
+                        const mediaId = this.getAttribute('data-id');
+                        deleteMedia(mediaId);
                     });
                 });
             }
             
             // 删除媒体
-            function deleteMedia(index) {
-                if (currentLibrary && confirm('确定要删除这个项目吗？')) {
-                    libraries[currentLibrary].media.splice(index, 1);
-                    localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                    renderMedia();
-                    renderLibraries();
+            async function deleteMedia(mediaId) {
+                if (confirm('确定要删除这个项目吗？')) {
+                    try {
+                        const response = await fetch(`http://localhost:5000/api/media/${mediaId}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            // 刷新媒体列表
+                            const libraryResponse = await fetch(`http://localhost:5000/api/libraries/${currentLibrary}`);
+                            const libraryData = await libraryResponse.json();
+                            
+                            if (libraryResponse.ok) {
+                                renderMedia(libraryData.media_items);
+                                renderLibraries();
+                            }
+                        } else {
+                            alert('删除失败');
+                        }
+                    } catch (error) {
+                        console.error('删除错误:', error);
+                        alert('删除过程中发生错误');
+                    }
                 }
             }
             
@@ -690,27 +745,42 @@
                 createLibraryForm.style.display = createLibraryForm.style.display === 'none' ? 'block' : 'none';
             });
             
-            submitLibraryBtn.addEventListener('click', function() {
+            // 提交创建库
+            submitLibraryBtn.addEventListener('click', async function() {
                 const name = libraryNameInput.value.trim();
                 
-                if (name) {
-                    const libraryId = 'lib_' + Date.now();
-                    libraries[libraryId] = {
-                        name: name,
-                        owner: currentUser,
-                        media: []
-                    };
-                    
-                    localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                    libraryNameInput.value = '';
-                    createLibraryForm.style.display = 'none';
-                    renderLibraries();
-                    selectLibrary(libraryId);
+                if (name && currentUser) {
+                    try {
+                        const response = await fetch('http://localhost:5000/api/libraries', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                                name: name, 
+                                owner_id: currentUser.id 
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            libraryNameInput.value = '';
+                            createLibraryForm.style.display = 'none';
+                            renderLibraries();
+                            selectLibrary(data.library.id);
+                        } else {
+                            alert(data.error || '创建失败');
+                        }
+                    } catch (error) {
+                        console.error('创建库错误:', error);
+                        alert('创建过程中发生错误');
+                    }
                 }
             });
             
             // 上传媒体
-            mediaUpload.addEventListener('change', function(e) {
+            mediaUpload.addEventListener('change', async function(e) {
                 if (!currentUser) {
                     alert('请先登录');
                     return;
@@ -725,45 +795,44 @@
                 
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    const reader = new FileReader();
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('user_id', currentUser.id);
+                    formData.append('library_id', currentLibrary);
                     
-                    reader.onload = function(e) {
-                        const media = {
-                            name: file.name,
-                            type: file.type,
-                            url: e.target.result,
-                            owner: currentUser,
-                            uploadedAt: new Date().toISOString()
-                        };
+                    try {
+                        const response = await fetch('http://localhost:5000/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
                         
-                        if (!libraries[currentLibrary].media) {
-                            libraries[currentLibrary].media = [];
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            // 上传成功，刷新媒体列表
+                            const libraryResponse = await fetch(`http://localhost:5000/api/libraries/${currentLibrary}`);
+                            const libraryData = await libraryResponse.json();
+                            
+                            if (libraryResponse.ok) {
+                                renderMedia(libraryData.media_items);
+                                renderLibraries();
+                            }
+                        } else {
+                            alert(data.error || '上传失败');
                         }
-                        
-                        libraries[currentLibrary].media.push(media);
-                        localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                        renderMedia();
-                        renderLibraries();
-                    };
-                    
-                    reader.readAsDataURL(file);
+                    } catch (error) {
+                        console.error('上传错误:', error);
+                        alert('上传过程中发生错误');
+                    }
                 }
                 
-                // 重置文件输入，允许再次选择相同文件
+                // 重置文件输入
                 e.target.value = '';
             });
             
             // 初始化：检查是否有已登录的用户
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser && users[savedUser]) {
-                currentUser = savedUser;
-            }
-            
             updateUI();
         });
     </script>
 </body>
-
 </html>
-
-
