@@ -3,764 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>多用户媒体库</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>我的图片集</title>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
         
         body {
-            background-color: #f5f7fa;
+            background-color: #f5f5f5;
             color: #333;
             line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
             padding: 20px;
         }
         
         header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 20px 0;
             text-align: center;
-            border-radius: 8px;
+            padding: 30px 0;
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-        }
-        
-        .auth-buttons {
-            display: flex;
-            gap: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         h1 {
-            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
         }
         
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .description {
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
         }
         
-        .main-content {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 25px;
-        }
-        
-        .sidebar {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        
-        .library-list {
-            list-style: none;
-            margin-top: 15px;
-        }
-        
-        .library-item {
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .library-item:hover {
-            background: #e9ecef;
-        }
-        
-        .library-item.active {
-            background: #6a11cb;
-            color: white;
-        }
-        
-        .btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        
-        .btn-primary {
-            background: #6a11cb;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5a0fb8;
-        }
-        
-        .btn-danger {
-            background: #ff6b6b;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #fa5252;
-        }
-        
-        .create-library-form {
-            margin-top: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        
-        .media-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        
-        .media-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .upload-btn {
-            background: #4cd964;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background 0.2s ease;
-        }
-        
-        .upload-btn:hover {
-            background: #38c953;
-        }
-        
-        .media-grid {
+        .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
+            margin-bottom: 30px;
         }
         
-        .media-item {
-            position: relative;
+        .image-card {
+            background-color: #fff;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .media-item:hover {
+        .image-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
         
-        .media-item img, .media-item video {
+        .image-card img {
             width: 100%;
             height: 200px;
             object-fit: cover;
             display: block;
         }
         
-        .media-info {
-            padding: 12px;
-            background: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .image-info {
+            padding: 15px;
         }
         
-        .media-owner {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-        
-        .media-actions {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 0;
-            color: #6c757d;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-            color: #adb5bd;
+        .image-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
         }
         
         footer {
             text-align: center;
-            margin-top: 40px;
             padding: 20px;
-            color: #6c757d;
+            margin-top: 30px;
+            color: #7f8c8d;
             font-size: 0.9rem;
         }
         
-        /* 认证模态框 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 400px;
-            max-width: 90%;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .close {
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        .auth-tabs {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        
-        .auth-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-        
-        .auth-tab.active {
-            border-bottom: 2px solid #6a11cb;
-            color: #6a11cb;
-        }
-        
-        .auth-form {
-            display: none;
-        }
-        
-        .auth-form.active {
-            display: block;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #6a11cb;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-        }
-        
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
-            
-            header {
-                flex-direction: column;
-                gap: 15px;
+        }
+        
+        @media (max-width: 480px) {
+            .gallery {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div>
-                <h1>多用户媒体库</h1>
-                <p class="subtitle">协作共享您的图片和视频</p>
-            </div>
-            <div id="authButtons" class="auth-buttons">
-                <button class="btn btn-primary" id="loginBtn">登录</button>
-                <button class="btn btn-primary" id="registerBtn">注册</button>
-            </div>
-            <div id="userInfo" class="user-info" style="display: none;">
-                <div class="avatar" id="userAvatar">U</div>
-                <span id="username">用户</span>
-                <button class="btn btn-danger" id="logoutBtn">退出</button>
-            </div>
-        </header>
-        
-        <div class="main-content">
-            <div class="sidebar">
-                <h2>我的媒体库</h2>
-                <button class="btn btn-primary" id="createLibraryBtn">创建新库</button>
-                
-                <div class="create-library-form" id="createLibraryForm" style="display: none;">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="libraryName" placeholder="输入库名称">
-                    </div>
-                    <button class="btn btn-primary" id="submitLibraryBtn">创建</button>
+    <header>
+        <h1>我的图片集</h1>
+        <p class="description">这是一个简单的图片展示页面，上传到GitHub后可以直接访问查看图片。</p>
+    </header>
+    
+    <main>
+        <div class="gallery">
+            <!-- 图片1 -->
+            <div class="image-card">
+                <img src="image1.jpg" alt="图片1">
+                <div class="image-info">
+                    <div class="image-title">图片1</div>
+                    <p>图片描述文字可以放在这里。</p>
                 </div>
-                
-                <ul class="library-list" id="libraryList">
-                    <!-- 库列表将通过JS动态生成 -->
-                </ul>
             </div>
             
-            <div class="media-container">
-                <div class="media-header">
-                    <h2 id="currentLibraryName">选择或创建一个库</h2>
-                    <label class="upload-btn">
-                        <i class="fas fa-upload"></i> 上传媒体
-                        <input type="file" id="mediaUpload" multiple accept="image/*,video/*" style="display: none;">
-                    </label>
-                </div>
-                
-                <div class="media-grid" id="mediaGrid">
-                    <div class="empty-state">
-                        <i class="fas fa-folder-open"></i>
-                        <p>当前库为空，请上传图片或视频</p>
-                    </div>
+            <!-- 图片2 -->
+            <div class="image-card">
+                <img src="image2.jpg" alt="图片2">
+                <div class="image-info">
+                    <div class="image-title">图片2</div>
+                    <p>图片描述文字可以放在这里。</p>
                 </div>
             </div>
+            
+            <!-- 图片3 -->
+            <div class="image-card">
+                <img src="image3.jpg" alt="图片3">
+                <div class="image-info">
+                    <div class="image-title">图片3</div>
+                    <p>图片描述文字可以放在这里。</p>
+                </div>
+            </div>
+            
+            <!-- 你可以继续添加更多图片 -->
+            <!-- 
+            <div class="image-card">
+                <img src="image4.jpg" alt="图片4">
+                <div class="image-info">
+                    <div class="image-title">图片4</div>
+                    <p>图片描述文字可以放在这里。</p>
+                </div>
+            </div>
+            -->
         </div>
-        
-        <footer>
-            <p>© 2023 多用户媒体库 - 协作共享您的媒体内容</p>
-        </footer>
-    </div>
-
-    <!-- 认证模态框 -->
-    <div class="modal" id="authModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">用户登录</h2>
-                <span class="close" id="closeModal">&times;</span>
-            </div>
-            
-            <div class="auth-tabs">
-                <div class="auth-tab active" data-tab="login">登录</div>
-                <div class="auth-tab" data-tab="register">注册</div>
-            </div>
-            
-            <form class="auth-form active" id="loginForm">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="loginUsername" placeholder="用户名" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" class="form-control" id="loginPassword" placeholder="密码" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">登录</button>
-            </form>
-            
-            <form class="auth-form" id="registerForm">
-                <div class="form-group">
-                    <input type="text" class="form-control" id="registerUsername" placeholder="用户名" required>
-                </div>
-                <div class="form-group">
-                    <input type="email" class="form-control" id="registerEmail" placeholder="电子邮件" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" class="form-control" id="registerPassword" placeholder="密码" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" class="form-control" id="confirmPassword" placeholder="确认密码" required>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">注册</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化变量
-            let users = JSON.parse(localStorage.getItem('mediaLibraryUsers')) || {};
-            let currentUser = null;
-            let libraries = JSON.parse(localStorage.getItem('mediaLibraries')) || {};
-            let currentLibrary = null;
-            
-            // DOM元素
-            const authButtons = document.getElementById('authButtons');
-            const userInfo = document.getElementById('userInfo');
-            const userAvatar = document.getElementById('userAvatar');
-            const usernameSpan = document.getElementById('username');
-            const loginBtn = document.getElementById('loginBtn');
-            const registerBtn = document.getElementById('registerBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const authModal = document.getElementById('authModal');
-            const closeModal = document.getElementById('closeModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const authTabs = document.querySelectorAll('.auth-tab');
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-            const libraryList = document.getElementById('libraryList');
-            const createLibraryBtn = document.getElementById('createLibraryBtn');
-            const createLibraryForm = document.getElementById('createLibraryForm');
-            const libraryNameInput = document.getElementById('libraryName');
-            const submitLibraryBtn = document.getElementById('submitLibraryBtn');
-            const currentLibraryName = document.getElementById('currentLibraryName');
-            const mediaUpload = document.getElementById('mediaUpload');
-            const mediaGrid = document.getElementById('mediaGrid');
-            
-            // 显示/隐藏认证模态框
-            function toggleAuthModal(show) {
-                authModal.style.display = show ? 'flex' : 'none';
-            }
-            
-            // 切换认证选项卡
-            authTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // 更新活动选项卡
-                    authTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // 更新表单显示
-                    document.querySelectorAll('.auth-form').forEach(form => {
-                        form.classList.remove('active');
-                    });
-                    document.getElementById(tabName + 'Form').classList.add('active');
-                    
-                    // 更新模态框标题
-                    modalTitle.textContent = tabName === 'login' ? '用户登录' : '用户注册';
-                });
-            });
-            
-            // 登录表单提交
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('loginUsername').value;
-                const password = document.getElementById('loginPassword').value;
-                
-                if (users[username] && users[username].password === password) {
-                    currentUser = username;
-                    localStorage.setItem('currentUser', username);
-                    updateUI();
-                    toggleAuthModal(false);
-                    loginForm.reset();
-                } else {
-                    alert('用户名或密码错误');
-                }
-            });
-            
-            // 注册表单提交
-            registerForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('registerUsername').value;
-                const email = document.getElementById('registerEmail').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                if (password !== confirmPassword) {
-                    alert('密码不一致');
-                    return;
-                }
-                
-                if (users[username]) {
-                    alert('用户名已存在');
-                    return;
-                }
-                
-                // 创建新用户
-                users[username] = {
-                    email: email,
-                    password: password,
-                    createdAt: new Date().toISOString()
-                };
-                
-                // 保存用户数据
-                localStorage.setItem('mediaLibraryUsers', JSON.stringify(users));
-                
-                alert('注册成功，请登录');
-                authTabs[0].click(); // 切换到登录选项卡
-                registerForm.reset();
-            });
-            
-            // 关闭模态框
-            closeModal.addEventListener('click', function() {
-                toggleAuthModal(false);
-            });
-            
-            // 点击模态框外部关闭
-            authModal.addEventListener('click', function(e) {
-                if (e.target === authModal) {
-                    toggleAuthModal(false);
-                }
-            });
-            
-            // 登录按钮点击
-            loginBtn.addEventListener('click', function() {
-                authTabs[0].click();
-                toggleAuthModal(true);
-            });
-            
-            // 注册按钮点击
-            registerBtn.addEventListener('click', function() {
-                authTabs[1].click();
-                toggleAuthModal(true);
-            });
-            
-            // 退出登录
-            logoutBtn.addEventListener('click', function() {
-                currentUser = null;
-                localStorage.removeItem('currentUser');
-                updateUI();
-            });
-            
-            // 更新UI显示
-            function updateUI() {
-                if (currentUser) {
-                    authButtons.style.display = 'none';
-                    userInfo.style.display = 'flex';
-                    usernameSpan.textContent = currentUser;
-                    userAvatar.textContent = currentUser.charAt(0).toUpperCase();
-                    
-                    // 显示用户的库
-                    renderLibraries();
-                } else {
-                    authButtons.style.display = 'flex';
-                    userInfo.style.display = 'none';
-                    libraryList.innerHTML = '<p class="empty-state">请先登录</p>';
-                    mediaGrid.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-user"></i>
-                            <p>请登录后查看媒体内容</p>
-                        </div>
-                    `;
-                    currentLibraryName.textContent = '请先登录';
-                }
-            }
-            
-            // 显示库列表
-            function renderLibraries() {
-                libraryList.innerHTML = '';
-                
-                const userLibraries = Object.keys(libraries).filter(id => libraries[id].owner === currentUser);
-                
-                if (userLibraries.length === 0) {
-                    libraryList.innerHTML = '<p class="empty-state">暂无库，请创建一个</p>';
-                    return;
-                }
-                
-                userLibraries.forEach(libraryId => {
-                    const library = libraries[libraryId];
-                    const li = document.createElement('li');
-                    li.className = `library-item ${currentLibrary === libraryId ? 'active' : ''}`;
-                    li.innerHTML = `
-                        <span>${library.name}</span>
-                        <span>${library.media ? library.media.length : 0}个项目</span>
-                    `;
-                    li.addEventListener('click', () => selectLibrary(libraryId));
-                    libraryList.appendChild(li);
-                });
-            }
-            
-            // 选择库
-            function selectLibrary(libraryId) {
-                currentLibrary = libraryId;
-                currentLibraryName.textContent = libraries[libraryId].name;
-                renderMedia();
-                renderLibraries();
-            }
-            
-            // 显示媒体内容
-            function renderMedia() {
-                mediaGrid.innerHTML = '';
-                
-                if (!currentLibrary || !libraries[currentLibrary].media || libraries[currentLibrary].media.length === 0) {
-                    mediaGrid.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p>当前库为空，请上传图片或视频</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                libraries[currentLibrary].media.forEach((media, index) => {
-                    const mediaItem = document.createElement('div');
-                    mediaItem.className = 'media-item';
-                    
-                    if (media.type.startsWith('image')) {
-                        mediaItem.innerHTML = `
-                            <img src="${media.url}" alt="${media.name}">
-                            <div class="media-info">
-                                <p>${media.name}</p>
-                                <span class="media-owner">由 ${media.owner} 上传</span>
-                            </div>
-                            ${media.owner === currentUser ? `
-                                <div class="media-actions">
-                                    <button class="btn btn-danger delete-btn" data-index="${index}">删除</button>
-                                </div>
-                            ` : ''}
-                        `;
-                    } else if (media.type.startsWith('video')) {
-                        mediaItem.innerHTML = `
-                            <video controls>
-                                <source src="${media.url}" type="${media.type}">
-                                您的浏览器不支持视频标签
-                            </video>
-                            <div class="media-info">
-                                <p>${media.name}</p>
-                                <span class="media-owner">由 ${media.owner} 上传</span>
-                            </div>
-                            ${media.owner === currentUser ? `
-                                <div class="media-actions">
-                                    <button class="btn btn-danger delete-btn" data-index="${index}">删除</button>
-                                </div>
-                            ` : ''}
-                        `;
-                    }
-                    
-                    mediaGrid.appendChild(mediaItem);
-                });
-                
-                // 添加删除按钮事件
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const index = parseInt(this.getAttribute('data-index'));
-                        deleteMedia(index);
-                    });
-                });
-            }
-            
-            // 删除媒体
-            function deleteMedia(index) {
-                if (currentLibrary && confirm('确定要删除这个项目吗？')) {
-                    libraries[currentLibrary].media.splice(index, 1);
-                    localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                    renderMedia();
-                    renderLibraries();
-                }
-            }
-            
-            // 创建新库
-            createLibraryBtn.addEventListener('click', function() {
-                if (!currentUser) {
-                    alert('请先登录');
-                    return;
-                }
-                
-                createLibraryForm.style.display = createLibraryForm.style.display === 'none' ? 'block' : 'none';
-            });
-            
-            submitLibraryBtn.addEventListener('click', function() {
-                const name = libraryNameInput.value.trim();
-                
-                if (name) {
-                    const libraryId = 'lib_' + Date.now();
-                    libraries[libraryId] = {
-                        name: name,
-                        owner: currentUser,
-                        media: []
-                    };
-                    
-                    localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                    libraryNameInput.value = '';
-                    createLibraryForm.style.display = 'none';
-                    renderLibraries();
-                    selectLibrary(libraryId);
-                }
-            });
-            
-            // 上传媒体
-            mediaUpload.addEventListener('change', function(e) {
-                if (!currentUser) {
-                    alert('请先登录');
-                    return;
-                }
-                
-                if (!currentLibrary) {
-                    alert('请先选择或创建一个库');
-                    return;
-                }
-                
-                const files = e.target.files;
-                
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        const media = {
-                            name: file.name,
-                            type: file.type,
-                            url: e.target.result,
-                            owner: currentUser,
-                            uploadedAt: new Date().toISOString()
-                        };
-                        
-                        if (!libraries[currentLibrary].media) {
-                            libraries[currentLibrary].media = [];
-                        }
-                        
-                        libraries[currentLibrary].media.push(media);
-                        localStorage.setItem('mediaLibraries', JSON.stringify(libraries));
-                        renderMedia();
-                        renderLibraries();
-                    };
-                    
-                    reader.readAsDataURL(file);
-                }
-                
-                // 重置文件输入，允许再次选择相同文件
-                e.target.value = '';
-            });
-            
-            // 初始化：检查是否有已登录的用户
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser && users[savedUser]) {
-                currentUser = savedUser;
-            }
-            
-            updateUI();
-        });
-    </script>
+    </main>
+    
+    <footer>
+        <p>© 2023 我的图片集 | 使用HTML和CSS创建</p>
+    </footer>
 </body>
 </html>
