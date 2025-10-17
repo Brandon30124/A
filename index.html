@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片展示</title>
+    <title>GitHub图片展示与下载器</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
             padding: 20px;
         }
         
@@ -26,46 +26,110 @@
         
         header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 20px;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px 0;
+            margin-bottom: 30px;
         }
         
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.6;
+        }
+        
+        .input-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .download-all {
+            background: #2196F3;
+        }
+        
+        .download-all:hover {
+            background: #0b7dda;
         }
         
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
-            margin-bottom: 40px;
+            margin-top: 30px;
         }
         
         .image-card {
-            background: white;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
         
         .image-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
         }
         
         .image-container {
-            width: 100%;
             height: 200px;
             overflow: hidden;
         }
@@ -85,57 +149,72 @@
             padding: 15px;
         }
         
-        .image-title {
-            font-weight: 600;
-            margin-bottom: 5px;
-            font-size: 1.1rem;
+        .image-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        .image-description {
+        .image-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .image-download {
+            background: #FF9800;
+            padding: 8px 15px;
             font-size: 0.9rem;
-            color: #666;
         }
         
-        .upload-section {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        .upload-section h2 {
-            margin-bottom: 15px;
-            color: #2575fc;
-        }
-        
-        .instructions {
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            color: #666;
-            font-size: 0.9rem;
+        .image-download:hover {
+            background: #e68900;
         }
         
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             font-size: 1.2rem;
-            color: #666;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .success {
+            background: rgba(76, 175, 80, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
         }
         
         @media (max-width: 768px) {
             .gallery {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             }
             
+            .form-group {
+                flex-direction: column;
+            }
+            
+            input {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
             h1 {
                 font-size: 2rem;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -143,108 +222,177 @@
 <body>
     <div class="container">
         <header>
-            <h1>图片展示</h1>
-            <p class="subtitle">自动加载并展示所有图片</p>
+            <h1>GitHub图片展示与下载器</h1>
+            <p class="description">
+                输入您的GitHub用户名、仓库名和图片所在文件夹路径，即可获取并展示所有PNG图片。
+                您可以下载单张图片或一次性下载所有图片。
+            </p>
         </header>
         
-        <section class="upload-section">
-            <h2>如何添加图片</h2>
-            <div class="instructions">
-                <p>1. 将你的图片文件放在与此HTML文件相同的目录中</p>
-                <p>2. 支持的格式：JPG、PNG、GIF、WebP等</p>
-                <p>3. 图片将自动加载并显示在下方</p>
-                <p>4. 图片数量不限，布局会自动适应</p>
+        <section class="input-section">
+            <div class="form-group">
+                <input type="text" id="username" placeholder="GitHub用户名 (例如: octocat)" required>
+                <input type="text" id="repository" placeholder="仓库名 (例如: my-images)" required>
+                <input type="text" id="folder" placeholder="文件夹路径 (例如: images 或 留空)" value="">
+            </div>
+            <div class="form-group">
+                <button id="fetch-images">获取图片</button>
+            </div>
+            
+            <div id="message"></div>
+            
+            <div class="actions">
+                <button id="download-all" class="download-all" disabled>下载所有图片</button>
             </div>
         </section>
         
-        <div id="gallery" class="gallery">
-            <div class="loading">正在加载图片...</div>
-        </div>
-        
-        <footer>
-            <p>© 2023 图片展示 | 自动加载所有图片</p>
-        </footer>
+        <section id="gallery" class="gallery">
+            <!-- 图片将在这里动态生成 -->
+            <div class="loading" id="loading" style="display: none;">正在加载图片...</div>
+        </section>
     </div>
 
     <script>
-        // 图片扩展名列表
-        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
-        
-        // 模拟图片数据 - 在实际环境中，这些图片应该放在同一目录下
-        // 这里我们使用一些示例图片URL，实际使用时这些图片应该替换为你的本地图片
-        const sampleImages = [
-            {
-                src: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '自然风光',
-                description: '美丽的山脉与湖泊'
-            },
-            {
-                src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '森林景色',
-                description: '清晨的森林雾气'
-            },
-            {
-                src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '壮丽山川',
-                description: '雄伟的山脉景色'
-            },
-            {
-                src: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '瀑布',
-                description: '壮观的瀑布景色'
-            },
-            {
-                src: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '海边岩石',
-                description: '海浪拍打岩石的瞬间'
-            },
-            {
-                src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-                title: '迷雾森林',
-                description: '神秘的迷雾森林'
-            }
-        ];
-        
-        // 获取图片列表
-        function getImageList() {
-            // 在实际环境中，这里应该使用服务器端脚本获取目录中的图片列表
-            // 由于GitHub Pages的限制，纯前端无法直接读取目录内容
-            // 这里我们返回模拟数据
-            return sampleImages;
-        }
-        
-        // 渲染图片
-        function renderImages() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const fetchButton = document.getElementById('fetch-images');
+            const downloadAllButton = document.getElementById('download-all');
             const gallery = document.getElementById('gallery');
-            const images = getImageList();
+            const messageDiv = document.getElementById('message');
+            const loadingDiv = document.getElementById('loading');
             
-            if (images.length === 0) {
-                gallery.innerHTML = '<div class="loading">未找到图片，请将图片文件放在与此HTML文件相同的目录中</div>';
-                return;
+            let currentImages = [];
+            
+            // 获取GitHub图片
+            fetchButton.addEventListener('click', async function() {
+                const username = document.getElementById('username').value.trim();
+                const repository = document.getElementById('repository').value.trim();
+                const folder = document.getElementById('folder').value.trim();
+                
+                if (!username || !repository) {
+                    showMessage('请输入GitHub用户名和仓库名', 'error');
+                    return;
+                }
+                
+                showLoading(true);
+                clearMessage();
+                
+                try {
+                    const images = await fetchGitHubImages(username, repository, folder);
+                    currentImages = images;
+                    displayImages(images);
+                    
+                    if (images.length > 0) {
+                        downloadAllButton.disabled = false;
+                        showMessage(`成功加载 ${images.length} 张图片`, 'success');
+                    } else {
+                        downloadAllButton.disabled = true;
+                        showMessage('未找到PNG图片', 'error');
+                    }
+                } catch (error) {
+                    showMessage(`获取图片失败: ${error.message}`, 'error');
+                    downloadAllButton.disabled = true;
+                } finally {
+                    showLoading(false);
+                }
+            });
+            
+            // 下载所有图片
+            downloadAllButton.addEventListener('click', function() {
+                if (currentImages.length === 0) return;
+                
+                // 创建临时链接逐个下载
+                currentImages.forEach((image, index) => {
+                    setTimeout(() => {
+                        downloadImage(image.download_url, image.name);
+                    }, index * 300); // 延迟以避免浏览器限制
+                });
+                
+                showMessage(`开始下载 ${currentImages.length} 张图片`, 'success');
+            });
+            
+            // 从GitHub获取图片
+            async function fetchGitHubImages(username, repository, folder = '') {
+                const apiUrl = `https://api.github.com/repos/${username}/${repository}/contents/${folder}`;
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API请求失败: ${response.status}`);
+                }
+                
+                const contents = await response.json();
+                
+                // 过滤出PNG图片
+                const pngImages = contents.filter(item => 
+                    item.type === 'file' && item.name.toLowerCase().endsWith('.png')
+                );
+                
+                return pngImages;
             }
             
-            gallery.innerHTML = '';
+            // 显示图片
+            function displayImages(images) {
+                gallery.innerHTML = '';
+                
+                if (images.length === 0) {
+                    gallery.innerHTML = '<div class="loading">未找到PNG图片</div>';
+                    return;
+                }
+                
+                images.forEach(image => {
+                    const imageCard = document.createElement('div');
+                    imageCard.className = 'image-card';
+                    
+                    imageCard.innerHTML = `
+                        <div class="image-container">
+                            <img src="${image.download_url}" alt="${image.name}" loading="lazy">
+                        </div>
+                        <div class="image-info">
+                            <div class="image-name">${image.name}</div>
+                            <div class="image-actions">
+                                <button class="image-download" data-url="${image.download_url}" data-name="${image.name}">下载</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    gallery.appendChild(imageCard);
+                });
+                
+                // 添加单个图片下载事件
+                document.querySelectorAll('.image-download').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const url = this.getAttribute('data-url');
+                        const name = this.getAttribute('data-name');
+                        downloadImage(url, name);
+                    });
+                });
+            }
             
-            images.forEach((image, index) => {
-                const imageCard = document.createElement('div');
-                imageCard.className = 'image-card';
-                
-                imageCard.innerHTML = `
-                    <div class="image-container">
-                        <img src="${image.src}" alt="${image.title || '图片'}" loading="lazy">
-                    </div>
-                    <div class="image-info">
-                        <div class="image-title">${image.title || '图片 ' + (index + 1)}</div>
-                        <div class="image-description">${image.description || ''}</div>
-                    </div>
-                `;
-                
-                gallery.appendChild(imageCard);
-            });
-        }
-        
-        // 页面加载完成后渲染图片
-        document.addEventListener('DOMContentLoaded', renderImages);
+            // 下载单张图片
+            function downloadImage(url, filename) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
+            // 显示/隐藏加载状态
+            function showLoading(show) {
+                loadingDiv.style.display = show ? 'block' : 'none';
+            }
+            
+            // 显示消息
+            function showMessage(text, type) {
+                messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
+            }
+            
+            // 清除消息
+            function clearMessage() {
+                messageDiv.innerHTML = '';
+            }
+        });
     </script>
 </body>
 </html>
