@@ -158,21 +158,24 @@
                 
                 const contents = await response.json();
                 
-                // 过滤出PNG图片
-                const pngImages = contents.filter(item => 
-                    item.type === 'file' && item.name.toLowerCase().endsWith('.png')
+                // 过滤出PNG和JPG图片
+                const images = contents.filter(item => 
+                    item.type === 'file' && 
+                    (item.name.toLowerCase().endsWith('.png') || 
+                     item.name.toLowerCase().endsWith('.jpg') ||
+                     item.name.toLowerCase().endsWith('.jpeg'))
                 );
                 
                 // 清空画廊
                 gallery.innerHTML = '';
                 
-                if (pngImages.length === 0) {
+                if (images.length === 0) {
                     gallery.innerHTML = '<div class="no-images">暂无图片，请联系管理员</div>';
                     return;
                 }
                 
                 // 显示图片
-                pngImages.forEach(image => {
+                images.forEach(image => {
                     const imageCard = document.createElement('div');
                     imageCard.className = 'image-card';
                     
@@ -209,5 +212,3 @@
     </script>
 </body>
 </html>
-
-
