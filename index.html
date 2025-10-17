@@ -96,6 +96,7 @@
             cursor: pointer;
             font-size: 0.9rem;
             transition: background 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
         
         button:hover {
@@ -109,9 +110,25 @@
             grid-column: 1 / -1;
         }
         
+        /* 移动端优化 */
+        .mobile-tips {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
         @media (max-width: 768px) {
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .mobile-tips {
+                display: block;
             }
         }
         
@@ -119,6 +136,27 @@
             .gallery {
                 grid-template-columns: 1fr;
             }
+            
+            .image-info button {
+                width: 100%;
+                padding: 12px;
+            }
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -126,13 +164,15 @@
     <div class="container">
         <header>
             <h1>郑家元表情包大全</h1>
-            <p class="description">此网页收集百事通学长郑家元的所有表情包，如需投稿请联系管理员hnr。
-              图片加载较慢，请耐心等待。</p>
+            <p class="description">此页面显示百事通学长郑家元的所有表情包，如需投稿请联系管理员hnr。</p>
+            <div class="mobile-tips">
+                提示：在移动端，点击"下载"按钮后，图片将自动保存到您的相册或下载文件夹。
+            </div>
         </header>
         
         <section id="gallery" class="gallery">
             <!-- 图片将在这里动态生成 -->
-            <div class="no-images">暂无图片，请联系管理员</div>
+            <div class="no-images">加载中...</div>
         </section>
     </div>
 
@@ -185,11 +225,22 @@
                             <img src="${image.download_url}" alt="${image.name}" loading="lazy">
                         </div>
                         <div class="image-info">
-                            <button onclick="downloadImage('${image.download_url}', '${image.name}')">下载</button>
+                            <button data-url="${image.download_url}" data-name="${image.name}">
+                                <span class="btn-text">下载</span>
+                            </button>
                         </div>
                     `;
                     
                     gallery.appendChild(imageCard);
+                });
+                
+                // 为所有下载按钮添加事件监听器
+                document.querySelectorAll('.image-info button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const url = this.getAttribute('data-url');
+                        const name = this.getAttribute('data-name');
+                        downloadImage(url, name, this);
+                    });
                 });
                 
             } catch (error) {
@@ -199,12 +250,12 @@
         }
         
         // 下载图片函数 - 使用Blob方式避免通过GitHub直接下载
-        async function downloadImage(url, filename) {
+        async function downloadImage(url, filename, button) {
             try {
                 // 显示加载提示
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = '下载中...';
+                const btnText = button.querySelector('.btn-text');
+                const originalText = btnText.textContent;
+                btnText.innerHTML = '<span class="loading"></span>下载中...';
                 button.disabled = true;
                 
                 // 获取图片数据
@@ -217,29 +268,43 @@
                 
                 // 创建临时下载链接
                 const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
+                
+                // 针对不同设备使用不同的下载方法
+                if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    // 移动设备：使用新窗口打开图片，让用户手动保存
+                    const newWindow = window.open(blobUrl, '_blank');
+                    if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                        // 如果弹窗被阻止，显示提示
+                        alert('请在弹出窗口中长按图片保存到相册。如果未弹出，请检查浏览器设置允许弹窗。');
+                    }
+                } else {
+                    // 桌面设备：使用下载链接
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
                 
                 // 清理
                 setTimeout(() => {
-                    document.body.removeChild(a);
                     URL.revokeObjectURL(blobUrl);
                 }, 100);
                 
                 // 恢复按钮状态
-                button.textContent = originalText;
-                button.disabled = false;
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                    button.disabled = false;
+                }, 1500);
                 
             } catch (error) {
                 console.error('下载失败:', error);
-                alert('下载失败，请重试');
+                alert('下载失败，请重试或稍后再试');
                 
                 // 恢复按钮状态
-                const button = event.target;
-                button.textContent = '下载';
+                const btnText = button.querySelector('.btn-text');
+                btnText.textContent = '下载';
                 button.disabled = false;
             }
         }
@@ -249,5 +314,3 @@
     </script>
 </body>
 </html>
-
-
