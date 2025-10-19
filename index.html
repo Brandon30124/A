@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>郑家元表情包大全</title>
+    <title>表情包大全</title>
     <style>
         * {
             margin: 0;
@@ -191,8 +191,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>郑家元表情包大全</h1>
-            <p class="description">此页面显示百事通学长郑家元的所有表情包，按不同库分类。如需投稿请联系管理员hnr。图片加载较慢，请耐心等待，可尝试刷新。</p>
+            <h1>表情包大全</h1>
+            <p class="description">此页面收集百事通学长郑家元及叶一勤的所有表情包。如需投稿请联系管理员hnr。图片加载较慢，请耐心等待，可尝试刷新。</p>
             
             <div class="library-selector">
                 <select id="library-select">
@@ -220,7 +220,8 @@
         
         // 定义库（文件夹）及其显示名称
         const LIBRARIES = [
-            { id: '郑家元', name: '郑家元', description: '郑家元表情' }];
+            { id: '郑家元', name: '郑家元' }，
+            { id: '叶一勤', name: '叶一勤' }];
         
         // 当前选中的库
         let currentLibrary = '';
@@ -409,4 +410,5 @@
     </script>
 </body>
 </html>
+
 
