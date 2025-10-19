@@ -43,7 +43,28 @@
         .description {
             color: #666;
             max-width: 600px;
-            margin: 0 auto;
+            margin: 0 auto 20px;
+        }
+        
+        .library-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .library-selector select {
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            background-color: white;
+            min-width: 200px;
+        }
+        
+        .library-info {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-style: italic;
         }
         
         .gallery {
@@ -112,7 +133,6 @@
         
         /* 移动端优化 */
         .mobile-tips {
-            display: none;
             text-align: center;
             margin: 15px 0;
             padding: 10px;
@@ -125,10 +145,6 @@
         @media (max-width: 768px) {
             .gallery {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            }
-            
-            .mobile-tips {
-                display: block;
             }
         }
         
@@ -158,21 +174,41 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* 库选择器加载动画 */
+        .library-loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,.1);
+            border-radius: 50%;
+            border-top-color: #2ea44f;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>郑家元表情包大全</h1>
-            <p class="description">此页面显示百事通学长郑家元的所有表情包，如需投稿请联系管理员hnr。图片加载较慢，请耐心等待，可尝试刷新。</p>
+            <p class="description">此页面显示百事通学长郑家元的所有表情包，按不同库分类。如需投稿请联系管理员hnr。图片加载较慢，请耐心等待，可尝试刷新。</p>
+            
+            <div class="library-selector">
+                <select id="library-select">
+                    <option value="">加载库列表中...</option>
+                </select>
+            </div>
+            
+            <div id="library-info" class="library-info"></div>
+            
             <div class="mobile-tips">
                 提示：在移动端，长按图片即可保存图片到您的相册
             </div>
         </header>
         
         <section id="gallery" class="gallery">
-            <!-- 图片将在这里动态生成 -->
-            <div class="no-images">加载中...</div>
+            <div class="no-images">请选择一个表情包库</div>
         </section>
     </div>
 
@@ -180,21 +216,87 @@
         // 配置您的GitHub信息
         const GITHUB_USERNAME = 'Brandon30124';
         const REPOSITORY_NAME = 'A';
-        const IMAGE_FOLDER = ''; // 图片所在的文件夹路径，如果图片在根目录则设为空字符串 ''
         const BRANCH = 'main'; // 仓库分支，通常是main或master
+        
+        // 定义库（文件夹）及其显示名称
+        const LIBRARIES = [
+            { id: 'funny', name: '搞笑表情', description: '各种搞笑有趣的郑家元表情' },
+            { id: 'daily', name: '日常表情', description: '日常生活中的郑家元表情' },
+            { id: 'reaction', name: '反应表情', description: '适用于各种场景的郑家元反应表情' },
+            { id: 'special', name: '特别收藏', description: '特别版和稀有郑家元表情' }
+        ];
+        
+        // 当前选中的库
+        let currentLibrary = '';
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLibrarySelector();
+            loadLibraries();
+        });
+        
+        // 初始化库选择器
+        function initializeLibrarySelector() {
+            const librarySelect = document.getElementById('library-select');
+            
+            // 清空现有选项
+            librarySelect.innerHTML = '<option value="">选择表情包库...</option>';
+            
+            // 添加库选项
+            LIBRARIES.forEach(library => {
+                const option = document.createElement('option');
+                option.value = library.id;
+                option.textContent = library.name;
+                librarySelect.appendChild(option);
+            });
+            
+            // 添加事件监听器
+            librarySelect.addEventListener('change', function() {
+                currentLibrary = this.value;
+                updateLibraryInfo();
+                loadImages();
+            });
+        }
+        
+        // 加载库列表（如果需要动态获取）
+        function loadLibraries() {
+            // 这里可以添加从GitHub动态获取文件夹的逻辑
+            // 目前我们使用预定义的LIBRARIES数组
+            console.log('库列表已加载');
+        }
+        
+        // 更新库信息显示
+        function updateLibraryInfo() {
+            const libraryInfo = document.getElementById('library-info');
+            const selectedLibrary = LIBRARIES.find(lib => lib.id === currentLibrary);
+            
+            if (selectedLibrary) {
+                libraryInfo.textContent = selectedLibrary.description;
+            } else {
+                libraryInfo.textContent = '';
+            }
+        }
         
         // 获取并显示图片
         async function loadImages() {
             const gallery = document.getElementById('gallery');
             
+            if (!currentLibrary) {
+                gallery.innerHTML = '<div class="no-images">请选择一个表情包库</div>';
+                return;
+            }
+            
             try {
+                // 显示加载状态
+                gallery.innerHTML = '<div class="no-images">加载中...</div>';
+                
                 // 构建GitHub API URL
-                const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPOSITORY_NAME}/contents/${IMAGE_FOLDER}`;
+                const apiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPOSITORY_NAME}/contents/${currentLibrary}`;
                 
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
-                    throw new Error('无法获取仓库内容');
+                    throw new Error('无法获取库内容');
                 }
                 
                 const contents = await response.json();
@@ -211,7 +313,7 @@
                 gallery.innerHTML = '';
                 
                 if (images.length === 0) {
-                    gallery.innerHTML = '<div class="no-images">暂无图片，请联系管理员</div>';
+                    gallery.innerHTML = '<div class="no-images">此库暂无图片，请联系管理员</div>';
                     return;
                 }
                 
@@ -308,12 +410,6 @@
                 button.disabled = false;
             }
         }
-        
-        // 页面加载完成后获取图片
-        document.addEventListener('DOMContentLoaded', loadImages);
     </script>
 </body>
 </html>
-
-
-
